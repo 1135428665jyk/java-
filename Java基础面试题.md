@@ -86,7 +86,7 @@ final
 内部类将局部变量copy一份作为内部类的成员变量
 
 ```
-### （4）String StringBuilder StringBuffer区别及使用场景
+### （5）String StringBuilder StringBuffer区别及使用场景
 ```bash
 String 是final不可变的每一次操作都会生成新的对象
 StringBuffer和StringBuilder不会改变对象
@@ -94,6 +94,13 @@ StringBuffer是线程安全的(Synchronized)，StringBuilder是线程不安全�
 性能：StringBuilder>StringBuffer>String
 场景：优先使用StringBuilder，多线程使用共享变量时使用StringBuffer
 
+
+```
+### （6）重载和重写的区别
+```bash
+重载：发生在同一个类中，方法名称相同，参数类型不同，个数不同，顺序不同，方法返回值和访问修饰符可以不同，发生在编译时。
+重写：发生在父子类中，方法名，参数列表必须相同，返回值范围小于等于父类，抛出的异常范围小于等于父类，访问修饰范围大于等于
+父类，如果父类父类方法为private则子类不能重写
 
 ```
 
