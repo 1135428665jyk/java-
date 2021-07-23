@@ -135,6 +135,14 @@ HashSet举例，先判断HashCode判断对象的加入位置，看该位置是�
 如果没有重写hashCode则该class的两个对象无论如何都不会相等。
 
 ```
+### （10） ArrayList和LinkedList区别
+```bash
+
+
+
+```
+
+
 
 
 
