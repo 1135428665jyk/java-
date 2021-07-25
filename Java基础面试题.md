@@ -138,10 +138,10 @@ HashSet举例，先判断HashCode判断对象的加入位置，看该位置是�
 ### （10） ArrayList和LinkedList区别
 ```bash
 ArrayList:基于动态数组，连续内存空间，适合随机访问，当长度超过限制，会自动进行扩容，会重建数组，然后将老数组中的数据copy到新数组中
-如果不是尾部插入元素会涉及到大量元素的移动，使用尾插法并且指定容器容量能够提升性能
+如果不是尾部插入元素会涉及到大量元素的移动，使用尾插法并且指定容器容量能够提升性能，默认容量是10，会以1.5倍扩容
 
 LinkedList:基于链表结构，内存空间不连续，适合插入及删除元素，不适合查询，LinkedList必须使用Iterator进行遍历，因为使用for循环
-还会再重新进行遍历，消耗一定的性能，不要使用indexOf进行遍历，如果找不到元素，会对遍历整个列表。
+还会再重新进行遍历，消耗一定的性能，不要使用indexOf进行遍历，如果找不到元素，会对遍历整个列表。链表结构，不需要设置默认容量，
 
 ```
 ### (11) HashMap和HashTable区别
@@ -155,8 +155,120 @@ Java8，链表长度达到8，数组长度超过64会转换成红黑树，元素
 红黑树，长度低于6，则转换成链表。
 key为null,存储在下标为0的位置
 ```
+### (12)ConcurrentHashMap 1.7和1.8有什么区别？
+```java
 
 
+
+
+
+
+```
+### (13) HashSet实现原理
+```java
+HashSet的实现主要是使用HashMap来实现的。
+HashSet是使用HashMap的key的不可重复性，来实现的，但是value，
+
+private static final Object PRESENT = new Object(); //value创建的对象
+//序列化的时候，不将整个map进行序列化，子序列化key
+private transient HashMap<E,Object> map;
+
+其内部存在方法有：
+
+add()
+remove()
+size()
+isEmpty()
+contains()
+clear()
+writeObject()
+
+//写入流对象
+private void writeObject(java.io.ObjectOutputStream s)
+        throws java.io.IOException {
+        // Write out any hidden serialization magic
+        s.defaultWriteObject();
+
+        // Write out HashMap capacity and load factor
+        //容量
+        s.writeInt(map.capacity());
+        //加载因子
+        s.writeFloat(map.loadFactor());
+
+        // Write out size
+        //存储元素的数量
+        s.writeInt(map.size());
+
+        // Write out all elements in the proper order.
+        //将key，写入到流
+        for (E e : map.keySet())
+            s.writeObject(e);
+    }
+
+
+//读取流对象
+private void readObject(java.io.ObjectInputStream s)
+        throws java.io.IOException, ClassNotFoundException {
+        // Read in any hidden serialization magic
+        s.defaultReadObject();
+
+        // Read capacity and verify non-negative.
+        //读取容量
+        int capacity = s.readInt();
+        if (capacity < 0) {
+            throw new InvalidObjectException("Illegal capacity: " +
+                                             capacity);
+        }
+
+        // Read load factor and verify positive and non NaN.
+        //读取加载因子
+        float loadFactor = s.readFloat();
+        if (loadFactor <= 0 || Float.isNaN(loadFactor)) {
+            throw new InvalidObjectException("Illegal load factor: " +
+                                             loadFactor);
+        }
+
+        // Read size and verify non-negative.
+        //读取存储元素的数量
+        int size = s.readInt();
+        if (size < 0) {
+            throw new InvalidObjectException("Illegal size: " +
+                                             size);
+        }
+        // Set the capacity according to the size and load factor ensuring that
+        // the HashMap is at least 25% full but clamping to maximum capacity.
+        capacity = (int) Math.min(size * Math.min(1 / loadFactor, 4.0f),
+                HashMap.MAXIMUM_CAPACITY);
+
+        // Constructing the backing map will lazily create an array when the first element is
+        // added, so check it before construction. Call HashMap.tableSizeFor to compute the
+        // actual allocation size. Check Map.Entry[].class since it's the nearest public type to
+        // what is actually created.
+
+        SharedSecrets.getJavaOISAccess()
+                     .checkArray(s, Map.Entry[].class, HashMap.tableSizeFor(capacity));
+
+        // Create backing HashMap
+        //因为LinkedHashSet继承于HashSet，兼容了LinedHashSet序列化操作，
+        map = (((HashSet<?>)this) instanceof LinkedHashSet ?
+               new LinkedHashMap<E,Object>(capacity, loadFactor) :
+               new HashMap<E,Object>(capacity, loadFactor));
+
+        // Read in all elements in the proper order.
+        //取出元素放到HashMap中或陪着LinkedHashMap中
+        for (int i=0; i<size; i++) {
+            @SuppressWarnings("unchecked")
+                E e = (E) s.readObject();
+            map.put(e, PRESENT); //PRESENT是new Object()对象，没有实际含义
+        }
+    }
+    
+LinkedHashSet继承HashSet，可以看出其构造函数，都是调用HashSet的构造函数,其余没有特殊的其他方法
+    HashSet(int initialCapacity, float loadFactor, boolean dummy) {
+        map = new LinkedHashMap<>(initialCapacity, loadFactor);
+    }
+
+```
 
 
 
